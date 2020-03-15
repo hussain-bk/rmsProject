@@ -1,0 +1,269 @@
+import React from "react";
+import Grid from '@material-ui/core/Grid';
+import Box from '@material-ui/core/Box';
+import Typography from '@material-ui/core/Typography';
+import TextField from '@material-ui/core/TextField';
+import Select from '@material-ui/core/Select';
+import InputLabel from '@material-ui/core/InputLabel';
+import MenuItem from '@material-ui/core/MenuItem';
+import Button from '@material-ui/core/Button';
+import firebase from "../firebase";
+import { ReportItem } from "./reportItem"
+import Slide from '@material-ui/core/Slide';
+
+const Transition = React.forwardRef(function Transition(props, ref) {
+  return <Slide direction="up" ref={ref} {...props} />;
+});
+
+export default function MainContainer() {
+  const [tag, setTag] = React.useState('');
+  const [group, setGroup] = React.useState('');
+
+  const [newReportTitle, setNewReport] = React.useState([])
+  const [newReportContent, setNewReportContent] = React.useState([])
+  const [reports, setReports] = React.useState([])
+
+  const [filterText, setSearchReport] = React.useState('')
+  const [updateDialogOpen, setUpdateDialogOpen] = React.useState(false);
+  const [filteredTag, setFilteredTag] = React.useState('');
+  const [filteredGroup, setFilteredGroup] = React.useState('');
+  const [allGroups, setAllGroups] = React.useState([])
+  const [userGroups, setUserGroups] = React.useState([])
+  const [userGroups2, setUserGroups2] = React.useState([])
+  const [admin, setAdmin] = React.useState();
+  const [allTags, setAllTags] = React.useState([])
+
+  const onCreateReport = () => {
+    const db = firebase.firestore()
+    db.collection('reports').add({
+      title: newReportTitle, content: newReportContent,
+      tag: tag, group: group, creator: firebase.auth().currentUser.email, id: Math.random()
+    })
+      .then(() => {
+        window.location.reload(false);
+      })
+  }
+  //Getting all groups
+  React.useEffect(() => {
+    const db = firebase.firestore()
+    const fetchData = async () => {
+      const data = await db.collection("groups").get()
+      setAllGroups(data.docs.map(doc => ({ ...doc.data(), id: doc.id })))
+    }
+    fetchData();
+  }, [])
+  //Getting Current User Groups
+  React.useEffect(() => {
+    const db = firebase.firestore()
+    const fetchData = async () => {
+      db.collection("users").doc(firebase.auth().currentUser.uid).get().then(doc => {
+        if (doc.data().group != null) {
+          setUserGroups(doc.data().group)
+          // setUserGroups2(doc.data().group)
+          getReportList();
+
+        }
+        setAdmin(doc.data().admin)
+
+      })
+    }
+    fetchData();
+  }, [])
+  //Getting all Tags
+  React.useEffect(() => {
+    const db = firebase.firestore()
+    const fetchData = async () => {
+      const data = await db.collection("classifications").get()
+      setAllTags(data.docs.map(doc => ({ ...doc.data(), id: doc.id })))
+    }
+    fetchData();
+
+  }, [])
+  // Getting Reports list
+  // React.useEffect(() => {
+  //   const fetchData = async () => {
+  //     const db = firebase.firestore()
+
+  //     const data = await db.collection("reports").get()
+  //     setReports(data.docs.map(doc => ({ ...doc.data(), id: doc.id })))
+
+
+  //   }
+  //   fetchData()
+  // }, [])
+  const getReportList = () => {
+    const db = firebase.firestore()
+
+    const data = db.collection("users").doc(firebase.auth().currentUser.uid).get().then(cred => {
+      db.collection("reports").where('group', 'in', cred.data().group).get().then(function (querySnapshot) {
+        const all = [];
+        querySnapshot.forEach(function (doc) {
+          all.push({
+            title: doc.data().title,
+            content: doc.data().content,
+            group: doc.data().group,
+            tag: doc.data().tag,
+            id: doc.id,
+            creator: doc.data().creator
+          })
+        });
+        // setReports(doc => ({ ...doc.data(), id: doc.id }))
+        // all.push("title",doc.data().title)
+        // all.push("content",doc.data().content)
+        // all.push("tag",doc.data().tag)
+        // all.push("group",doc.data().group)
+        // all.push("creator",doc.data().creator)
+        // doc.data() is never undefined for query doc snapshots
+        // console.log(doc.id, " => ", doc.data());
+        // setReports(data.docs.map(doc => ({ ...doc.data(), id: doc.id })))
+        setReports(all);
+      })
+        .catch(function (error) {
+          console.log("Error getting documents: ", error);
+        });
+    })
+
+  };
+
+  const filteredReports = reports.filter(report => {
+    return report.tag.toLowerCase().includes(filteredTag.toLowerCase())
+      && report.group.toLowerCase().includes(filteredGroup.toLowerCase())
+      && (report.title.toLowerCase().includes(filterText.toLowerCase())
+        || report.content.toLowerCase().includes(filterText.toLowerCase())
+        || report.creator.toLowerCase().includes(filterText.toLowerCase()))
+
+
+
+  });
+
+  const openUpdateDialog = () => {
+    setUpdateDialogOpen(true);
+  };
+
+  const closeUpdateDialog = () => {
+    setUpdateDialogOpen(false);
+  };
+  const handleFilterTag = (e) => {
+    setFilteredTag(e.target.value);
+  };
+
+
+
+  // const handleGroupClick = (gr) => {
+  //     setFilteredGroup(gr.name)
+  // }
+  return (
+    <div className="root">
+      <Grid container spacing={0}>
+        {/* <Grid item xs={2}>
+            <Box className="leftBox">
+              <Paper className="navPaper" >
+                  <DnsIcon />
+                  <Typography> Reports </Typography>
+              </Paper>
+              <Link color="textPrimary" component="button" variant="body2" onClick={() => firebase.auth().signOut()} >LOGOUT</Link>
+            </Box>
+          </Grid> */}
+        <Grid item xs={7}>
+          <Box className="righttBox">
+            <Typography className="textBlack" variant="h4" component="h4"> Reports </Typography>
+            <TextField style={{ margin: 8 }} placeholder="Search reports" helperText="Serach by title, content or creator"
+              fullWidth margin="normal" InputLabelProps={{ shrink: true }} onChange={(e) => setSearchReport(e.target.value)} />
+            <Box className="filteresBox">
+              <Box>
+                <InputLabel className="smallMarginTop" id="tagFilter">Filter by Tags</InputLabel>
+                <Select displayEmpty abelId="tagFilter" fullWidth value={filteredTag} onChange={(e) => setFilteredTag(e.target.value)}>
+                  <MenuItem value="">All</MenuItem>
+                  {allTags.map(item => (
+                    <MenuItem key={item.id} value={item.name}>{item.name}</MenuItem>
+                  ))}
+                </Select>
+              </Box>
+              <Box>
+                {admin ? (
+                  <div>
+                    <InputLabel className="smallMarginTop" id="groupFilterAdmin">Filter by Groups</InputLabel>
+                    <Select displayEmpty labelId="groupFilterAdmin" fullWidth value={filteredGroup} onChange={(e) => setFilteredGroup(e.target.value)}>
+                      <MenuItem value="">All</MenuItem>
+                      {allGroups.map(item => (
+                        <MenuItem key={item.id} value={item.name}>{item.name}</MenuItem>
+                      ))}
+                    </Select>
+                  </div>
+
+                ) : (
+                    <div>
+                      <InputLabel className="smallMarginTop" id="groupFilter">Filter by Groups</InputLabel>
+                      <Select displayEmpty labelId="groupFilter" fullWidth value={filteredGroup} onChange={(e) => setFilteredGroup(e.target.value)}>
+                        <MenuItem value="">All</MenuItem>
+                        {userGroups.map(item => (
+                          <MenuItem key={item} value={item}>{item}</MenuItem>
+                        ))}
+                      </Select>
+                    </div>
+
+                  )}
+
+
+
+              </Box>
+            </Box>
+            <div>
+              {filteredReports.map(report => (
+                <div key={report.id} onClick="">
+                  <ReportItem report={report} />
+                </div>
+              ))}
+            </div>
+          </Box>
+        </Grid>
+        <Grid item xs={5}>
+          <Box className="righttBox" style={{position:"fixed",right: 0}}> 
+            <Typography className="textBlack" variant="h4" component="h4"> Add Report </Typography>
+
+            <form className="addForm" noValidate autoComplete="off">
+              <TextField label="Title" onChange={(e) => setNewReport(e.target.value)} fullWidth />
+              <TextField label="Content" fullWidth multiline rows="6" variant="outlined" margin="normal" onChange={(e) => setNewReportContent(e.target.value)} />
+
+              <InputLabel className="smallMarginTop" id="tagSelectadmin" >Tag</InputLabel>
+              <Select labelId="tagSelectadmin" fullWidth value={tag} onChange={(e) => setTag(e.target.value)}>
+                {allTags.map(item => (
+                  <MenuItem key={item.id} value={item.name}>{item.name}</MenuItem>
+                ))}
+              </Select>
+              {/* <InputLabel className="smallMarginTop" id="groupSelectadmin" >Group</InputLabel> */}
+              {/* <Select labelId="groupSelectadmin" fullWidth value={grp} onChange={(e)=> handleSelectGroup(e.target)}>
+                <MenuItem  value={} >Technology</MenuItem>
+                <MenuItem value={"j"}>Medical</MenuItem>
+              </Select> */}
+
+
+              {admin ? (
+                <div>
+                  <InputLabel className="smallMarginTop" id="groupSelectadmin" >Group</InputLabel>
+                  <Select labelId="groupSelectadmin" fullWidth value={group} onChange={(e) => setGroup(e.target.value)}>
+                    {allGroups.map(item => (
+                      <MenuItem key={item.id} value={item.name}>{item.name}</MenuItem>
+                    ))}
+                  </Select>
+                </div>
+
+              ) : (
+                  <div>
+                    <InputLabel className="smallMarginTop" id="groupSelect" >Group</InputLabel>
+                    <Select labelId="groupSelect" id="group" fullWidth value={group} onChange={(e) => setGroup(e.target.value)}>
+                      {userGroups.map(item => (
+                        <MenuItem key={item} value={item}>{item}</MenuItem>
+                      ))}
+                    </Select>
+                  </div>
+
+                )}
+              <Button className="addBtn" fullWidth variant="contained" color="primary" size="large" onClick={onCreateReport}>Add</Button>
+            </form>
+          </Box>
+        </Grid>
+      </Grid>
+    </div>
+  );
+}

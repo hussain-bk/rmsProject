@@ -1,0 +1,249 @@
+.root {
+    flex-grow: 1;
+    // background: #bac7ba1c;
+  }
+.paper {
+    padding: 10px;
+    text-align: 'center';
+    
+}
+
+.leftBox {
+    background: #BBC7BA;
+    color: #cbcbcb;
+    height: 80vh;
+    padding-top: 100px;
+    width: 16%;
+    position: fixed;
+    border-radius: 10px;
+    margin-top: 1rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding-bottom: 1rem;
+}
+.righttBox{
+    // background: #ffffff;
+    color: #cbcbcb;
+    min-height: 90vh;
+    padding-left: 3rem;
+    padding-right: 3rem;
+    padding-top: 2rem;
+    padding-bottom: 6rem;
+}
+.navPaper{
+    color: #ffffff !important;
+    padding: 10px;
+    padding-top: 20px;
+    padding-bottom: 20px;
+    justify-content: center;
+    text-align: center;
+    box-shadow: none !important;
+    border-radius: 0 !important;
+    background-color: #99A89E !important;
+    cursor: pointer;
+}
+.textBlack{
+    color: #333333;
+    font-weight: 500 !important;
+}
+.contentText{
+    font-size: 0.8rem !important;
+    color: #636363;
+    margin-bottom: 3px;
+}
+.reportListItem{
+    height: auto;
+    margin-top: 1rem;
+    background-color: #ffffff;
+    box-shadow: 0px 7px 10px rgba(0, 0, 0, 0.06);
+    padding: 1rem;
+    border-radius: 10px;
+    border: solid 0.04rem #dadada;
+}
+.card-actionBox{
+    flex-direction: row !important;
+    justify-content: space-between;
+    display: flex;
+}
+.chip{
+    margin-left: 0.5rem;
+}
+.tagChip{
+    background: #7f71ca !important;
+    color: #ffffff !important;
+}
+.groupChip{
+    margin-left: 0.5rem;
+    color: #ffffff !important;
+    background-color: #7f71ca !important;
+}
+.addBtn{
+    margin-top: 2rem !important;
+    background: #7f71ca !important;
+    color: #ffffff !important;
+}
+.smallMarginTop{
+    margin-top: 1rem !important;
+}
+.mediumMarginStart{
+    margin-left: 2rem !important;
+}
+.tinyMarginTop{
+    margin-top: 0.5rem !important;
+}
+.mediumMargin{
+    margin: 2rem !important;
+}
+.login-leftBox{
+    height: 95vmin;
+    background-color: #BBC7BA;
+    display: flex;
+    justify-content: center;
+    flex-direction: column;
+    text-align: center;
+}
+.signup-leftBox{
+    height: 95vmin;
+    background-color: #7f71ca;
+    display: flex;
+    justify-content: center;
+    flex-direction: column;
+    text-align: center;
+}
+.login-rightBox{
+    height: 80vh;
+    background-color: #ffffff;
+}
+.login-title{
+    color: #333333;
+    margin-top: 6rem !important;
+    margin-bottom: 4rem !important;
+    padding-left: 20%;
+    padding-right: 20%;
+    font-size: 2rem !important;
+    font-weight: 600 !important;
+    letter-spacing: 4px !important;
+}
+.loginForm{
+    padding-left: 20%;
+    padding-right: 20%;
+}
+.login-btn{
+    margin-top: 1rem !important;
+    background-color: #99A89E !important;
+    color: white !important;
+    letter-spacing: 3px !important;
+    padding-top: 10px !important;
+    padding-bottom: 10px !important;
+}
+.signup-btn{
+    margin-top: 1rem !important;
+    background-color: #7f71ca !important;
+    color: white !important;
+    letter-spacing: 3px !important;
+    padding-top: 10px !important;
+    padding-bottom: 10px !important;
+}
+.login-LogoText{
+    font-size: 2rem !important;
+    font-weight: 900 !important;
+    letter-spacing: 0.4rem !important;
+    color: #fff;
+}
+.login-LogoSubText{
+    color: #fff;
+    letter-spacing: 0.2rem !important;
+}
+.addForm{
+    margin-top: 1rem !important;
+}
+.filteresBox{
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+}
+.tabItem{
+    color: white !important;
+}
+.tabItem.Mui-selected{
+    background: #99A89E;
+    color: white !important;
+}
+.creatorEmail{
+    color: #333333 !important;
+    font-size: 0.05rem !important;
+}
+.groupItem{
+    display: flex;
+    margin: 1rem;
+    color: #7f71ca;
+    border-radius: 10px;
+    border: solid 1px #7f71ca;
+    padding: 0.2rem;
+    padding-left: 2rem;
+    width: 20rem;
+    justify-content: space-between;
+}
+.deleteIcon{
+    color: #7f71ca !important;
+}
+.addGroup{
+    background: #7f71ca !important;
+    color: #ffffff !important;
+    
+}
+.addUserBox{
+    border-left: solid 2px #f6f6f6;
+    padding-left: 1rem;
+}
+.userListBox{
+    padding-right: 3rem;
+}
+.userItem{
+    height: auto;
+    margin-top: 1rem;
+    max-width: 80%;
+    width: 35rem;
+    background-color: #ffffff;
+    box-shadow: 0px 7px 10px rgba(0, 0, 0, 0.06);
+    padding: 1rem;
+    border-radius: 10px;
+    border: solid 0.04rem #dadada;
+}
+.userLinksBox{
+    display: flex;
+}
+.deleteUser{
+    margin-left: 1rem !important;
+    color: #f50057 !important;
+    font-size: 0.9rem;
+    cursor: pointer;
+}
+.resetPassword{
+    font-size: 0.9rem;
+    margin-left: 1rem !important;
+    cursor: pointer;
+    color: #5a5a5a !important;
+    
+}
+.username{
+    display: flex;
+}
+.adminText{
+    display: flex;
+    justify-self: end;
+    color: #7f71ca;
+}
+.flex{
+display: flex;
+} 
+.space-Between{
+    justify-content: space-between;
+}
+.SignLink{
+    display: block;
+    text-align: center;
+    color: #333333 !important;
+    margin-top: 1rem !important;
+}
