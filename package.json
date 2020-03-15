@@ -2,7 +2,6 @@
   "name": "rms-project",
   "version": "0.1.0",
   "private": true,
-  "homepage":"https://hussain-bk.github.io/rmsProject",
   "dependencies": {
     "@material-ui/core": "^4.9.5",
     "@material-ui/icons": "^4.9.1",
