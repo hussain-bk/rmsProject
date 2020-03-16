@@ -28,7 +28,7 @@ const Signup = ({ history }) => {
                     .auth()
                     .createUserWithEmailAndPassword(email.value, password.value).then(cred => {
                         return db.collection("users").doc(cred.user.uid).set({
-                            name: name.value, email: email.value, admin: false
+                            name: name.value, email: email.value, admin: false, group: ["Public"]
                         });
                     }).then(() => {
                         history.push("/");
@@ -38,23 +38,18 @@ const Signup = ({ history }) => {
             }
         }, [history]
     );
-
     if (currentUser) {
         return <Redirect to="/" />
     }
-
-
     const showError = () => {
         setErrorOpen(true);
     };
-
     const hideError = (event, reason) => {
         if (reason === 'clickaway') {
             return;
         }
         setErrorOpen(false);
     };
-
     return (
         <div>
             <Grid container spacing={0}>

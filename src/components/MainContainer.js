@@ -9,38 +9,49 @@ import MenuItem from '@material-ui/core/MenuItem';
 import Button from '@material-ui/core/Button';
 import firebase from "../firebase";
 import { ReportItem } from "./reportItem"
-import Slide from '@material-ui/core/Slide';
-
-const Transition = React.forwardRef(function Transition(props, ref) {
-  return <Slide direction="up" ref={ref} {...props} />;
-});
+import { storage } from '../firebase';
 
 export default function MainContainer() {
   const [tag, setTag] = React.useState('');
   const [group, setGroup] = React.useState('');
-
   const [newReportTitle, setNewReport] = React.useState([])
   const [newReportContent, setNewReportContent] = React.useState([])
   const [reports, setReports] = React.useState([])
-
   const [filterText, setSearchReport] = React.useState('')
-  const [updateDialogOpen, setUpdateDialogOpen] = React.useState(false);
   const [filteredTag, setFilteredTag] = React.useState('');
   const [filteredGroup, setFilteredGroup] = React.useState('');
   const [allGroups, setAllGroups] = React.useState([])
   const [userGroups, setUserGroups] = React.useState([])
-  const [userGroups2, setUserGroups2] = React.useState([])
   const [admin, setAdmin] = React.useState();
   const [allTags, setAllTags] = React.useState([])
+  const [imageRef, setImageRef] = React.useState('')
 
   const onCreateReport = () => {
     const db = firebase.firestore()
-    db.collection('reports').add({
+    const doc = db.collection('reports').doc();
+    doc.set({
       title: newReportTitle, content: newReportContent,
-      tag: tag, group: group, creator: firebase.auth().currentUser.email, id: Math.random()
+      tag: tag, group: group, creator: firebase.auth().currentUser.email, images: [], id: Math.random()
     })
       .then(() => {
-        window.location.reload(false);
+        if (imageRef === '') {
+          window.location.reload(false);
+        } else {
+          const uploadTask = storage.ref(`images/${imageRef.name}`).put(imageRef)
+          uploadTask.on('state_changed',
+            (snapShot) => {
+              console.log(snapShot)
+            }, (err) => {
+              console.log(err)
+            }, () => {
+              storage.ref('images').child(imageRef.name).getDownloadURL()
+                .then(fireBaseUrl => {
+                  doc.update({ "images": [fireBaseUrl] }).then(() => {
+                    window.location.reload(false);
+                  })
+                })
+            })
+        }
       })
   }
   //Getting all groups
@@ -59,12 +70,9 @@ export default function MainContainer() {
       db.collection("users").doc(firebase.auth().currentUser.uid).get().then(doc => {
         if (doc.data().group != null) {
           setUserGroups(doc.data().group)
-          // setUserGroups2(doc.data().group)
           getReportList();
-
         }
         setAdmin(doc.data().admin)
-
       })
     }
     fetchData();
@@ -79,22 +87,9 @@ export default function MainContainer() {
     fetchData();
 
   }, [])
-  // Getting Reports list
-  // React.useEffect(() => {
-  //   const fetchData = async () => {
-  //     const db = firebase.firestore()
-
-  //     const data = await db.collection("reports").get()
-  //     setReports(data.docs.map(doc => ({ ...doc.data(), id: doc.id })))
-
-
-  //   }
-  //   fetchData()
-  // }, [])
   const getReportList = () => {
     const db = firebase.firestore()
-
-    const data = db.collection("users").doc(firebase.auth().currentUser.uid).get().then(cred => {
+    db.collection("users").doc(firebase.auth().currentUser.uid).get().then(cred => {
       db.collection("reports").where('group', 'in', cred.data().group).get().then(function (querySnapshot) {
         const all = [];
         querySnapshot.forEach(function (doc) {
@@ -104,73 +99,38 @@ export default function MainContainer() {
             group: doc.data().group,
             tag: doc.data().tag,
             id: doc.id,
+            images: doc.data().images,
             creator: doc.data().creator
           })
         });
-        // setReports(doc => ({ ...doc.data(), id: doc.id }))
-        // all.push("title",doc.data().title)
-        // all.push("content",doc.data().content)
-        // all.push("tag",doc.data().tag)
-        // all.push("group",doc.data().group)
-        // all.push("creator",doc.data().creator)
-        // doc.data() is never undefined for query doc snapshots
-        // console.log(doc.id, " => ", doc.data());
-        // setReports(data.docs.map(doc => ({ ...doc.data(), id: doc.id })))
         setReports(all);
       })
         .catch(function (error) {
           console.log("Error getting documents: ", error);
         });
     })
-
   };
-
   const filteredReports = reports.filter(report => {
     return report.tag.toLowerCase().includes(filteredTag.toLowerCase())
       && report.group.toLowerCase().includes(filteredGroup.toLowerCase())
       && (report.title.toLowerCase().includes(filterText.toLowerCase())
         || report.content.toLowerCase().includes(filterText.toLowerCase())
         || report.creator.toLowerCase().includes(filterText.toLowerCase()))
-
-
-
   });
-
-  const openUpdateDialog = () => {
-    setUpdateDialogOpen(true);
-  };
-
-  const closeUpdateDialog = () => {
-    setUpdateDialogOpen(false);
-  };
-  const handleFilterTag = (e) => {
-    setFilteredTag(e.target.value);
-  };
-
-
-
-  // const handleGroupClick = (gr) => {
-  //     setFilteredGroup(gr.name)
-  // }
+  const handleImageAsFile = (e) => {
+    const image = e.target.files[0]
+    setImageRef(image)
+  }
   return (
     <div className="root">
       <Grid container spacing={0}>
-        {/* <Grid item xs={2}>
-            <Box className="leftBox">
-              <Paper className="navPaper" >
-                  <DnsIcon />
-                  <Typography> Reports </Typography>
-              </Paper>
-              <Link color="textPrimary" component="button" variant="body2" onClick={() => firebase.auth().signOut()} >LOGOUT</Link>
-            </Box>
-          </Grid> */}
         <Grid item xs={7}>
           <Box className="righttBox">
             <Typography className="textBlack" variant="h4" component="h4"> Reports </Typography>
             <TextField style={{ margin: 8 }} placeholder="Search reports" helperText="Serach by title, content or creator"
               fullWidth margin="normal" InputLabelProps={{ shrink: true }} onChange={(e) => setSearchReport(e.target.value)} />
             <Box className="filteresBox">
-              <Box>
+              <Box >
                 <InputLabel className="smallMarginTop" id="tagFilter">Filter by Tags</InputLabel>
                 <Select displayEmpty abelId="tagFilter" fullWidth value={filteredTag} onChange={(e) => setFilteredTag(e.target.value)}>
                   <MenuItem value="">All</MenuItem>
@@ -190,7 +150,6 @@ export default function MainContainer() {
                       ))}
                     </Select>
                   </div>
-
                 ) : (
                     <div>
                       <InputLabel className="smallMarginTop" id="groupFilter">Filter by Groups</InputLabel>
@@ -201,11 +160,7 @@ export default function MainContainer() {
                         ))}
                       </Select>
                     </div>
-
                   )}
-
-
-
               </Box>
             </Box>
             <div>
@@ -217,27 +172,21 @@ export default function MainContainer() {
             </div>
           </Box>
         </Grid>
-        <Grid item xs={5}>
-          <Box className="righttBox" style={{position:"fixed",right: 0}}> 
+        <Grid item xs={5} style={{ position: "fixed", right: 0 }}>
+          <Box className="righttBox">
             <Typography className="textBlack" variant="h4" component="h4"> Add Report </Typography>
-
             <form className="addForm" noValidate autoComplete="off">
               <TextField label="Title" onChange={(e) => setNewReport(e.target.value)} fullWidth />
               <TextField label="Content" fullWidth multiline rows="6" variant="outlined" margin="normal" onChange={(e) => setNewReportContent(e.target.value)} />
-
+              <Box>
+                <input type="file" onChange={handleImageAsFile} />
+              </Box>
               <InputLabel className="smallMarginTop" id="tagSelectadmin" >Tag</InputLabel>
               <Select labelId="tagSelectadmin" fullWidth value={tag} onChange={(e) => setTag(e.target.value)}>
                 {allTags.map(item => (
                   <MenuItem key={item.id} value={item.name}>{item.name}</MenuItem>
                 ))}
               </Select>
-              {/* <InputLabel className="smallMarginTop" id="groupSelectadmin" >Group</InputLabel> */}
-              {/* <Select labelId="groupSelectadmin" fullWidth value={grp} onChange={(e)=> handleSelectGroup(e.target)}>
-                <MenuItem  value={} >Technology</MenuItem>
-                <MenuItem value={"j"}>Medical</MenuItem>
-              </Select> */}
-
-
               {admin ? (
                 <div>
                   <InputLabel className="smallMarginTop" id="groupSelectadmin" >Group</InputLabel>
@@ -247,7 +196,6 @@ export default function MainContainer() {
                     ))}
                   </Select>
                 </div>
-
               ) : (
                   <div>
                     <InputLabel className="smallMarginTop" id="groupSelect" >Group</InputLabel>
@@ -257,7 +205,6 @@ export default function MainContainer() {
                       ))}
                     </Select>
                   </div>
-
                 )}
               <Button className="addBtn" fullWidth variant="contained" color="primary" size="large" onClick={onCreateReport}>Add</Button>
             </form>

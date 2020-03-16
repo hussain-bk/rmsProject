@@ -1,7 +1,7 @@
-import React ,{useCallback, useContext} from 'react';
-import {withRouter,Redirect} from "react-router";
+import React, { useCallback, useContext } from 'react';
+import { withRouter, Redirect } from "react-router";
 import firebase from '../firebase';
-import {AuthContext} from '../Auth';
+import { AuthContext } from '../Auth';
 import { Typography, Link } from '@material-ui/core';
 import Grid from '@material-ui/core/Grid';
 import Box from '@material-ui/core/Box';
@@ -14,23 +14,20 @@ function Alert(props) {
     return <MuiAlert elevation={6} variant="filled" {...props} />;
 }
 
-const Login = ({history}) => {
+const Login = ({ history }) => {
     const [errorOpen, setErrorOpen] = React.useState(false);
     const { currentUser } = useContext(AuthContext);
-
-    
 
     const handleLogin = useCallback(
         async event => {
             event.preventDefault();
-            const {email, password} = event.target.elements;
-
+            const { email, password } = event.target.elements;
             try {
                 await firebase
-                .auth()
-                .signInWithEmailAndPassword(email.value, password.value);
+                    .auth()
+                    .signInWithEmailAndPassword(email.value, password.value);
                 history.push("/");
-            } catch (error){
+            } catch (error) {
                 showError();
             }
         }, [history]
@@ -39,20 +36,15 @@ const Login = ({history}) => {
     if (currentUser) {
         return <Redirect to="/" />
     }
-
-    
     const showError = () => {
         setErrorOpen(true);
     };
-
     const hideError = (event, reason) => {
         if (reason === 'clickaway') {
-        return;
+            return;
         }
-
         setErrorOpen(false);
     };
-
     return (
         <div>
             <Grid container spacing={0}>
@@ -67,7 +59,7 @@ const Login = ({history}) => {
                         <Typography className="login-title"> Login to your account to continue </Typography>
                         <form onSubmit={handleLogin} className="loginForm" noValidate autoComplete="off">
                             <TextField required fullWidth id="email" margin="normal" label="Email" variant="outlined" />
-                            <TextField required fullWidth type="password" id="password"  margin="normal"label="Password" variant="outlined" />
+                            <TextField required fullWidth type="password" id="password" margin="normal" label="Password" variant="outlined" />
                             <Button type="submit" fullWidth className="login-btn" variant="contained">LOG IN</Button>
                         </form>
                         <Link className="SignLink" href="/signup" >Are you new ? Sign Up</Link>
@@ -77,24 +69,7 @@ const Login = ({history}) => {
                     </Box>
                 </Grid>
             </Grid>
-
-
-
-
-            {/* <Typography> Reports </Typography>
-            <form onSubmit={handleLogin}>
-                <label>
-                    email
-                    <input name="email" type="email" placeholder="Email" />
-                </label>
-                <label>
-                    password
-                    <input name="password" type="password" placeholder="Password" />
-                </label>
-                <button type="submit">Login</button>
-            </form> */}
         </div>
     );
 };
-
 export default withRouter(Login);

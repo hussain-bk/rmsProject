@@ -9,7 +9,6 @@ import Chip from '@material-ui/core/Chip';
 import Dialog from '@material-ui/core/Dialog';
 import DialogActions from '@material-ui/core/DialogActions';
 import DialogContent from '@material-ui/core/DialogContent';
-import DialogContentText from '@material-ui/core/DialogContentText';
 import DialogTitle from '@material-ui/core/DialogTitle';
 import Slide from '@material-ui/core/Slide';
 import Button from '@material-ui/core/Button';
@@ -17,6 +16,8 @@ import Select from '@material-ui/core/Select';
 import InputLabel from '@material-ui/core/InputLabel';
 import MenuItem from '@material-ui/core/MenuItem';
 import TextField from '@material-ui/core/TextField';
+import PublishIcon from '@material-ui/icons/Publish';
+import { storage } from '../firebase';
 
 const Transition = React.forwardRef(function Transition(props, ref) {
     return <Slide direction="up" ref={ref} {...props} />;
@@ -25,19 +26,20 @@ const Transition = React.forwardRef(function Transition(props, ref) {
 export const ReportItem = ({ report }) => {
     const [title] = React.useState(report.title);
     const [reportContent] = React.useState(report.content);
-    const [tag,setTag] = React.useState(report.tag);
+    const [tag, setTag] = React.useState(report.tag);
     const [group, setGroup] = React.useState(report.group);
+    const [images] = React.useState(report.images);
     const [creator] = React.useState(report.creator);
     const [updTitle, updateTitle] = React.useState([]);
     const [updContent, updateContent] = React.useState([]);
-    const [updTag, updateTag] = React.useState('');
-    const [updGroup, updateGroup] = React.useState('');
     const [updateDialogOpen, setUpdateDialogOpen] = React.useState(false);
+    const [uploadDialogOpen, setUploadDialogOpen] = React.useState(false);
     const [allGroups, setAllGroups] = React.useState([])
     const [allTags, setAllTags] = React.useState([])
     const [userGroups, setUserGroups] = React.useState([])
     const [admin, setAdmin] = React.useState();
-
+    const [imageRef, setImageRef] = React.useState('')
+    const [allImages, setAllImages] = React.useState([])
 
     //Getting all groups
     React.useEffect(() => {
@@ -78,58 +80,93 @@ export const ReportItem = ({ report }) => {
                 window.location.reload(false);
             })
     }
-
     const onUpdate = () => {
-
         const db = firebase.firestore()
-        const id = db.collection('reports').doc(report.id)
-
         updateTitle(title);
         updateContent(reportContent);
-        updateTag(tag);
-        updateGroup(group);
-
         openUpdateDialog()
-
     }
     const onDelete = () => {
         const db = firebase.firestore()
         db.collection('reports').doc(report.id).delete()
-
             .then(() => {
                 window.location.reload(false);
             })
     }
-
+    const onUpload = (e) => {
+        if (imageRef === '') {
+            console.log(`empty`)
+        } else {
+            const uploadTask = storage.ref(`images/${imageRef.name}`).put(imageRef)
+            uploadTask.on('state_changed',
+                (snapShot) => {
+                    console.log(snapShot)
+                }, (err) => {
+                    console.log(err)
+                }, () => {
+                    storage.ref('images').child(imageRef.name).getDownloadURL()
+                        .then(fireBaseUrl => {
+                            //save to that document
+                            var all = []
+                            const db = firebase.firestore()
+                            const doc = db.collection('reports').doc(report.id).get().then((item) => {
+                                all = item.data().images
+                                all.push(fireBaseUrl)
+                                setAllImages(all);
+                                console.log(allImages)
+                                console.log(all)
+                            }).then(() => {
+                                db.collection('reports').doc(report.id).update({ images: all }).then(() => {
+                                    window.location.reload(false);
+                                })
+                            })
+                        })
+                })
+        }
+    }
+    const handleImageAsFile = (e) => {
+        const image = e.target.files[0]
+        setImageRef(image)
+    }
     const openUpdateDialog = () => {
         setUpdateDialogOpen(true);
     };
-
     const closeUpdateDialog = () => {
         setUpdateDialogOpen(false);
     };
     const handleSelectGroup = (e) => {
         setGroup(e.target.value)
-    
     }
     const handleSelectTag = (e) => {
         setTag(e.target.value)
-        
     }
+    const closeUploadDialog = () => {
+        setUploadDialogOpen(false);
+    };
+    const openUploadDialog = () => {
+        setUploadDialogOpen(true);
+    };
 
     return (
-
-        <div className="reportListItem">
-
+        <Box className="reportListItem">
             <Typography className="textBlack" variant="subtitle1">{title}</Typography>
-
             <Typography className="contentText" paragraph="true" variant="subtitle1">{reportContent}</Typography>
+            <Box className="imageBox" >
+                <div>
+                    {images.map(item => (
+                        <img className="reportImage" height="100" width="100" src={item} />
+                    ))}
+                </div>
+            </Box>
             <Box className="card-actionBox">
                 <Box>
                     <Chip className="chip" className="tagChip" label={tag} />
                     <Chip className="chip" label={group} />
                 </Box>
                 <Box style={{ textAlign: "end" }}>
+                    <IconButton style={{ display: "inline" }} onClick={openUploadDialog} aria-label="upload" >
+                        <PublishIcon fontSize="small" />
+                    </IconButton>
                     <IconButton style={{ display: "inline" }} onClick={onDelete} aria-label="delete" >
                         <DeleteIcon fontSize="small" />
                     </IconButton>
@@ -138,62 +175,61 @@ export const ReportItem = ({ report }) => {
                     </IconButton>
                     <Typography className="creatorEmail" variant="subtitle1">Created by : {creator}</Typography>
                 </Box>
-
             </Box>
-
             <Dialog open={updateDialogOpen} TransitionComponent={Transition} keepMounted onClose={closeUpdateDialog}>
                 <DialogTitle >{"Update report"}</DialogTitle>
                 <DialogContent>
                     <form className="addForm" noValidate autoComplete="off">
                         <TextField label="Title" defaultValue={title} fullWidth onChange={(e) => updateTitle(e.target.value)}></TextField>
                         <TextField label="Content" defaultValue={reportContent} fullWidth multiline rows="6" variant="outlined" margin="normal" onChange={(e) => updateContent(e.target.value)} />
-                        
-                            <InputLabel className="smallMarginTop" id="tagSelectadmin" >Tag</InputLabel>
-                            <Select labelId="tagSelectadmin" fullWidth value={tag} onClick={(e) => handleSelectTag(e)}>
-                                {allTags.map(item => (
-                                    <MenuItem key={item.id} value={item.name}>{item.name}</MenuItem>
-                                ))}
-                            </Select>
 
-                            {admin ? (
+                        <InputLabel className="smallMarginTop" id="tagSelectadmin" >Tag</InputLabel>
+                        <Select labelId="tagSelectadmin" fullWidth value={tag} onClick={(e) => handleSelectTag(e)}>
+                            {allTags.map(item => (
+                                <MenuItem key={item.id} value={item.name}>{item.name}</MenuItem>
+                            ))}
+                        </Select>
+                        {admin ? (
+                            <div>
+                                <InputLabel className="smallMarginTop" id="groupSelectadmin" >Group</InputLabel>
+                                <Select labelId="groupSelectadmin" fullWidth value={group} onClick={(e) => handleSelectGroup(e)}>
+                                    {allGroups.map(item => (
+                                        <MenuItem key={item.id} value={item.name}>{item.name}</MenuItem>
+                                    ))}
+                                </Select>
+                            </div>
+                        ) : (
                                 <div>
-                                    <InputLabel className="smallMarginTop" id="groupSelectadmin" >Group</InputLabel>
-                                    <Select labelId="groupSelectadmin" fullWidth value={group} onClick={(e) => handleSelectGroup(e)}>
-                                        {allGroups.map(item => (
-                                            <MenuItem key={item.id} value={item.name}>{item.name}</MenuItem>
+                                    <InputLabel className="smallMarginTop" id="groupSelect" >Group</InputLabel>
+                                    <Select labelId="groupSelect" id="group" fullWidth value={group} onChange={(e) => handleSelectGroup(e)}>
+                                        {userGroups.map(item => (
+                                            <MenuItem key={item} value={item}>{item}</MenuItem>
                                         ))}
                                     </Select>
                                 </div>
-
-                            ) : (
-                                    <div>
-                                        <InputLabel className="smallMarginTop" id="groupSelect" >Group</InputLabel>
-                                        <Select labelId="groupSelect" id="group" fullWidth value={group} onChange={(e) => handleSelectGroup(e)}>
-                                            {userGroups.map(item => (
-                                                <MenuItem key={item} value={item}>{item}</MenuItem>
-                                            ))}
-                                        </Select>
-                                    </div>
-
-                                )}
-
-                            {/* <InputLabel className="smallMarginTop" id="groupSelect" >Group</InputLabel>
-                        <Select labelId="groupSelect" fullWidth defaultValue={group} onChange={(e) => updateGroup(e.target.value)}>
-
-                            <MenuItem value={"Saudi Arabia"}>Saudi Arabia</MenuItem>
-                            <MenuItem value={"United States"}>United States</MenuItem>
-                            <MenuItem value={"Norway"}>Norway</MenuItem>
-                        </Select> */}
-
-                            {/* <Button className="addBtn" fullWidth variant="contained" color="primary" size="large" onClick={onUpdateReport}>Add</Button> */}
+                            )}
                     </form>
                 </DialogContent>
-                    <DialogActions>
-                        <Button onClick={closeUpdateDialog} color="secondary">Cancel</Button>
-                        <Button onClick={onUpdateReport} color="primary">Update</Button>
-                    </DialogActions>
+                <DialogActions>
+                    <Button onClick={closeUpdateDialog} color="secondary">Cancel</Button>
+                    <Button onClick={onUpdateReport} color="primary">Update</Button>
+                </DialogActions>
             </Dialog>
-
-        </div>
-            );
-        }
+            {/* // Upload image Dialog */}
+            <Dialog open={uploadDialogOpen} TransitionComponent={Transition} keepMounted onClose={closeUploadDialog}>
+                <DialogTitle >{"Upload image"}</DialogTitle>
+                <DialogContent>
+                    <form className="addForm" noValidate autoComplete="off">
+                        <Box>
+                            <input type="file" onChange={handleImageAsFile} />
+                        </Box>
+                    </form>
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={closeUploadDialog} color="secondary">Cancel</Button>
+                    <Button color="primary" onClick={onUpload}>Upload</Button>
+                </DialogActions>
+            </Dialog>
+        </Box>
+    );
+}

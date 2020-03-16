@@ -1,13 +1,10 @@
 .root {
     flex-grow: 1;
-    // background: #bac7ba1c;
-  }
+}
 .paper {
     padding: 10px;
     text-align: 'center';
-    
 }
-
 .leftBox {
     background: #BBC7BA;
     color: #cbcbcb;
@@ -23,7 +20,6 @@
     padding-bottom: 1rem;
 }
 .righttBox{
-    // background: #ffffff;
     color: #cbcbcb;
     min-height: 90vh;
     padding-left: 3rem;
@@ -246,4 +242,20 @@ display: flex;
     text-align: center;
     color: #333333 !important;
     margin-top: 1rem !important;
+}
+.imageBox{
+    height: auto;
+    overflow: scroll !important;
+    display: flex;
+    flex-direction: row;
+    margin-bottom: 1rem;
+    padding: 0.9rem;
+}
+.reportImage{
+    margin-left: 10px;
+    margin-right: 10px;
+    width: 100px;
+    height: 100px;
+    border-radius: 0.4rem;
+    box-shadow: 0px 7px 10px rgba(0, 0, 0, 0.16);
 }

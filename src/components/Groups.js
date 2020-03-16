@@ -18,12 +18,10 @@ export default function Groups() {
   }
   React.useEffect(() => {
     const db = firebase.firestore()
-
     const fetchData = async () => {
       const data = await db.collection("groups").get()
       setGroups(data.docs.map(doc => ({ ...doc.data(), id: doc.id })))
     }
-
     db.collection('users').doc(firebase.auth().currentUser.uid).get().then(doc => {
       if (doc.data().admin) {
         fetchData();

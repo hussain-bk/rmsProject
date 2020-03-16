@@ -38,7 +38,6 @@ export const UserItem = ({ user }) => {
         }
         fetchData();
     }, [])
-
     const onUpdateUser = () => {
         const db = firebase.firestore()
         db.collection('users').doc(user.id).update({ group: updGroups, admin: adminText })
@@ -46,14 +45,12 @@ export const UserItem = ({ user }) => {
                 window.location.reload(false);
             })
     }
-
     const onUpdate = () => { openUpdateDialog() }
     const closeUpdateDialog = () => { setUpdateDialogOpen(false); };
     const openUpdateDialog = () => { setUpdateDialogOpen(true); };
     const handleChange = event => { updateGroups(event.target.value); };
 
     return (
-
         <div className="userItem">
             <Box className="flex space-Between">
                 <Typography className="textBlack username" variant="subtitle1">{name}</Typography>
