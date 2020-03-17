@@ -1,3 +1,7 @@
+// Created by Hussain Bk
+// (hussain.bk@outlook.com)
+// 17 March 2020
+
 import React from "react"
 import firebase from "../firebase"
 import Typography from '@material-ui/core/Typography';
@@ -19,6 +23,7 @@ import TextField from '@material-ui/core/TextField';
 import PublishIcon from '@material-ui/icons/Publish';
 import { storage } from '../firebase';
 
+//To animate transition of dialogs to appear from down to Up
 const Transition = React.forwardRef(function Transition(props, ref) {
     return <Slide direction="up" ref={ref} {...props} />;
 });
@@ -50,7 +55,7 @@ export const ReportItem = ({ report }) => {
         }
         fetchData();
     }, [])
-    //Getting Current User Groups
+    //Getting all groups assigned to current user
     React.useEffect(() => {
         const db = firebase.firestore()
         const fetchData = async () => {
@@ -73,6 +78,7 @@ export const ReportItem = ({ report }) => {
         fetchData();
     }, [])
 
+    //This function is to handle updating a report
     const onUpdateReport = () => {
         const db = firebase.firestore()
         db.collection('reports').doc(report.id).update({ title: updTitle, content: updContent, tag: tag, group: group })
@@ -80,12 +86,15 @@ export const ReportItem = ({ report }) => {
                 window.location.reload(false);
             })
     }
+    //Triggers opening of dialog for updating report
     const onUpdate = () => {
         const db = firebase.firestore()
         updateTitle(title);
         updateContent(reportContent);
+        //Open dialog
         openUpdateDialog()
     }
+    //This function is to delete a report
     const onDelete = () => {
         const db = firebase.firestore()
         db.collection('reports').doc(report.id).delete()
@@ -93,10 +102,13 @@ export const ReportItem = ({ report }) => {
                 window.location.reload(false);
             })
     }
+    //This function is to upload images to a report.
     const onUpload = (e) => {
+        //CHeck if user didnt upalod image
         if (imageRef === '') {
             console.log(`empty`)
         } else {
+            // Upload image to firebase storage 
             const uploadTask = storage.ref(`images/${imageRef.name}`).put(imageRef)
             uploadTask.on('state_changed',
                 (snapShot) => {
@@ -104,18 +116,22 @@ export const ReportItem = ({ report }) => {
                 }, (err) => {
                     console.log(err)
                 }, () => {
+                    //get download url
                     storage.ref('images').child(imageRef.name).getDownloadURL()
                         .then(fireBaseUrl => {
-                            //save to that document
+                            //save download url of image to that report
                             var all = []
                             const db = firebase.firestore()
                             const doc = db.collection('reports').doc(report.id).get().then((item) => {
+                                //get current images in the report
                                 all = item.data().images
+                                //add the new image
                                 all.push(fireBaseUrl)
                                 setAllImages(all);
                                 console.log(allImages)
                                 console.log(all)
                             }).then(() => {
+                                //Update report with all images
                                 db.collection('reports').doc(report.id).update({ images: all }).then(() => {
                                     window.location.reload(false);
                                 })
@@ -128,21 +144,25 @@ export const ReportItem = ({ report }) => {
         const image = e.target.files[0]
         setImageRef(image)
     }
+    //handle update report dialog
     const openUpdateDialog = () => {
         setUpdateDialogOpen(true);
     };
     const closeUpdateDialog = () => {
         setUpdateDialogOpen(false);
     };
+    //handle selection of filter group
     const handleSelectGroup = (e) => {
         setGroup(e.target.value)
     }
+    //handle selection of filter tag
     const handleSelectTag = (e) => {
         setTag(e.target.value)
     }
     const closeUploadDialog = () => {
         setUploadDialogOpen(false);
     };
+    //handle upload report dialog
     const openUploadDialog = () => {
         setUploadDialogOpen(true);
     };
@@ -151,6 +171,7 @@ export const ReportItem = ({ report }) => {
         <Box className="reportListItem">
             <Typography className="textBlack" variant="subtitle1">{title}</Typography>
             <Typography className="contentText" paragraph="true" variant="subtitle1">{reportContent}</Typography>
+            {/* list images in the report  */}
             <Box className="imageBox" >
                 <div>
                     {images.map(item => (
@@ -163,19 +184,24 @@ export const ReportItem = ({ report }) => {
                     <Chip className="chip" className="tagChip" label={tag} />
                     <Chip className="chip" label={group} />
                 </Box>
+                {/* report action buttons here  */}
                 <Box style={{ textAlign: "end" }}>
+                    {/* Upload image button  */}
                     <IconButton style={{ display: "inline" }} onClick={openUploadDialog} aria-label="upload" >
                         <PublishIcon fontSize="small" />
                     </IconButton>
+                    {/* Delete button  */}
                     <IconButton style={{ display: "inline" }} onClick={onDelete} aria-label="delete" >
                         <DeleteIcon fontSize="small" />
                     </IconButton>
+                    {/* update button  */}
                     <IconButton style={{ display: "inline" }} onClick={onUpdate} aria-label="update" >
                         <EditIcon fontSize="small" />
                     </IconButton>
                     <Typography className="creatorEmail" variant="subtitle1">Created by : {creator}</Typography>
                 </Box>
             </Box>
+            {/* Update report dialog  */}
             <Dialog open={updateDialogOpen} TransitionComponent={Transition} keepMounted onClose={closeUpdateDialog}>
                 <DialogTitle >{"Update report"}</DialogTitle>
                 <DialogContent>
@@ -215,7 +241,7 @@ export const ReportItem = ({ report }) => {
                     <Button onClick={onUpdateReport} color="primary">Update</Button>
                 </DialogActions>
             </Dialog>
-            {/* // Upload image Dialog */}
+            {/* Upload image Dialog */}
             <Dialog open={uploadDialogOpen} TransitionComponent={Transition} keepMounted onClose={closeUploadDialog}>
                 <DialogTitle >{"Upload image"}</DialogTitle>
                 <DialogContent>

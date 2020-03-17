@@ -1,3 +1,7 @@
+// Created by Hussain Bk
+// (hussain.bk@outlook.com)
+// 17 March 2020
+
 import React from 'react';
 import TextField from '@material-ui/core/TextField';
 import Button from '@material-ui/core/Button';
@@ -9,6 +13,8 @@ export default function Groups() {
   const [group, setGroup] = React.useState('');
   const [groups, setGroups] = React.useState([])
   const [admin, setAdmin] = React.useState('');
+
+  //This function is create a new group
   const onCreateGroup = () => {
     const db = firebase.firestore()
     db.collection('groups').add({ name: group, id: Math.random() })
@@ -16,6 +22,7 @@ export default function Groups() {
         window.location.reload(false);
       })
   }
+  //Gett all groups from database
   React.useEffect(() => {
     const db = firebase.firestore()
     const fetchData = async () => {
@@ -35,10 +42,12 @@ export default function Groups() {
     <div>
       {admin ? (
         <div>
+          {/* add new group form  */}
           <form className="addForm mediumMargin" noValidate autoComplete="off">
             <TextField placeholder="Add new group" onChange={(e) => setGroup(e.target.value)} />
             <Button className="addGroup" variant="contained" color="primary" size="small" onClick={onCreateGroup}>Add</Button>
           </form>
+          {/* List all groups in UI || only shown to Admin user */}
           {groups.length > 0 ? (
             <div>
               {groups.map(group => (

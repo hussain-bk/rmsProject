@@ -1,3 +1,7 @@
+// Created by Hussain Bk
+// (hussain.bk@outlook.com)
+// 17 March 2020
+
 import * as firebase from "firebase";
 import "firebase/firestore";
 import "firebase/storage";

@@ -1,3 +1,7 @@
+// Created by Hussain Bk
+// (hussain.bk@outlook.com)
+// 17 March 2020
+
 import React from 'react';
 import firebase from "../firebase";
 import Typography from '@material-ui/core/Typography';
@@ -14,6 +18,7 @@ export const GrouptItem = ({ group }) => {
     const [name] = React.useState(group.name);
     const [errorOpen, setErrorOpen] = React.useState(false);
 
+    //This function is to delete a group. (Public group can not be deleted)
     const onDelete = () => {
         const db = firebase.firestore()
         const doc = db.collection('groups').doc(group.id).get().then(item => {

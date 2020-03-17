@@ -1,3 +1,7 @@
+// Created by Hussain Bk
+// (hussain.bk@outlook.com)
+// 17 March 2020
+
 import React from 'react';
 import Content from "./components/Content"
 import { AuthProvider } from './Auth';
@@ -12,9 +16,13 @@ function App() {
     <AuthProvider>
       <BrowserRouter>
         <div>
+          {/* Application routes */}
           <Switch>
+            {/* Home screen */}
             <PrivateRoute exact path="/" component={Content} />
+            {/* Login screen  */}
             <Route path="/login" component={Login}/>
+            {/* sign up screen  */}
             <Route path="/signup" component={Signup}>
             </Route>
           </Switch>
